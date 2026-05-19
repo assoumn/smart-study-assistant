@@ -5,6 +5,7 @@ import PyPDF2
 from preprocessing.clean_text import clean_text
 from keywords.extract_keywords import extract_keywords
 from summarization.summarize import summarize_text
+from quiz.generate_quiz import generate_quiz
 
 # -----------------------------
 # LOAD IMAGE
@@ -20,6 +21,13 @@ st.set_page_config(
     page_title="Smart Study Assistant",
     layout="centered"
 )
+
+# -----------------------------
+# SESSION STATE
+# -----------------------------
+
+if "analysis_done" not in st.session_state:
+    st.session_state.analysis_done = False
 
 # -----------------------------
 # CUSTOM STYLING
@@ -111,23 +119,15 @@ if uploaded_file is not None:
             pdf_text += extracted
 
 # -----------------------------
-# BUTTON
+# ANALYZE BUTTON
 # -----------------------------
 
 if st.button("Analyze", use_container_width=True):
-
-    # -----------------------------
-    # CHOOSE INPUT SOURCE
-    # -----------------------------
 
     final_text = text
 
     if pdf_text:
         final_text = pdf_text
-
-    # -----------------------------
-    # EMPTY INPUT CHECK
-    # -----------------------------
 
     if final_text.strip() == "":
         st.warning("Please enter text or upload a PDF.")
@@ -136,51 +136,119 @@ if st.button("Analyze", use_container_width=True):
 
         with st.spinner("Analyzing lecture..."):
 
-            # -----------------------------
             # PREPROCESSING
-            # -----------------------------
+            st.session_state.cleaned_text = clean_text(
+                final_text
+            )
 
-            cleaned_text = clean_text(final_text)
-
-            # -----------------------------
-            # KEYWORD EXTRACTION
-            # -----------------------------
-
-            keywords = extract_keywords(cleaned_text)
-
-            # -----------------------------
-            # SUMMARIZATION
-            # -----------------------------
-
-            summary = summarize_text(final_text)
-
-            # -----------------------------
-            # CLEANED TEXT
-            # -----------------------------
-
-            st.divider()
-
-            st.subheader("Cleaned Text")
-
-            st.write(cleaned_text)
-
-            # -----------------------------
             # KEYWORDS
-            # -----------------------------
+            st.session_state.keywords = extract_keywords(
+                st.session_state.cleaned_text
+            )
 
-            st.divider()
-
-            st.subheader("Keywords")
-
-            for keyword in keywords:
-                st.markdown(f"- {keyword}")
-
-            # -----------------------------
             # SUMMARY
-            # -----------------------------
+            st.session_state.summary = summarize_text(
+                final_text
+            )
 
-            st.divider()
+            # QUIZ
+            st.session_state.quiz_questions = generate_quiz(
+                st.session_state.summary
+            )
 
-            st.subheader("Summary")
+            st.session_state.analysis_done = True
 
-            st.write(summary)
+# -----------------------------
+# DISPLAY RESULTS
+# -----------------------------
+
+if st.session_state.analysis_done:
+
+    # CLEANED TEXT
+    st.divider()
+
+    st.subheader("Cleaned Text")
+
+    st.write(st.session_state.cleaned_text)
+
+    # KEYWORDS
+    st.divider()
+
+    st.subheader("Keywords")
+
+    for keyword in st.session_state.keywords:
+        st.markdown(f"- {keyword}")
+
+    # SUMMARY
+    st.divider()
+
+    st.subheader("Summary")
+
+    st.write(st.session_state.summary)
+
+    # QUIZ
+    st.divider()
+
+    st.subheader("Quiz")
+
+    for index, item in enumerate(
+        st.session_state.quiz_questions
+    ):
+
+        st.markdown(f"### Question {index + 1}")
+
+        st.write(item["question"])
+
+        st.radio(
+            "Choose your answer:",
+            ["True", "False"],
+            key=f"quiz_answer_{index}"
+        )
+
+    # -----------------------------
+    # SUBMIT QUIZ
+    # -----------------------------
+
+    if st.button("Submit Quiz"):
+
+        score = 0
+
+        st.divider()
+
+        st.subheader("Quiz Results")
+
+        for index, item in enumerate(
+            st.session_state.quiz_questions
+        ):
+
+            user_answer = st.session_state[
+                f"quiz_answer_{index}"
+            ]
+
+            correct_answer = item["answer"]
+
+            st.markdown(f"### Question {index + 1}")
+
+            st.write(item["question"])
+
+            st.write(f"Your Answer: {user_answer}")
+
+            st.write(
+                f"Correct Answer: {correct_answer}"
+            )
+
+            if user_answer == correct_answer:
+
+                st.success("Correct")
+
+                score += 1
+
+            else:
+
+                st.error("Wrong")
+
+        st.divider()
+
+        st.success(
+            f"Final Score: {score} / {len(st.session_state.quiz_questions)}"
+        )
