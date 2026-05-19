@@ -176,8 +176,8 @@ if st.session_state.analysis_done:
 
     st.subheader("Keywords")
 
-    for keyword in st.session_state.keywords:
-        st.markdown(f"- {keyword}")
+    for keyword, score in st.session_state.keywords:
+     st.markdown(f"- {keyword}")
 
     # SUMMARY
     st.divider()
