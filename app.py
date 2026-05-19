@@ -5,7 +5,7 @@ from preprocessing.clean_text import clean_text
 
 # future imports
 # from keywords.extract_keywords import extract_keywords
-# from summarization.summarize import summarize_text
+from summarization.summarize import summarize_text
 
 # Load image
 image = Image.open("assets/roboto.png")
@@ -108,5 +108,5 @@ if st.button("Analyze", use_container_width=True):
 
         # Placeholder for summary
         st.subheader("Summary")
-
-        st.write("Waiting for summarization module...")
+        summary = summarize_text(text)
+        st.write(summary)
