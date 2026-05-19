@@ -2,9 +2,9 @@ import streamlit as st
 from PIL import Image
 
 from preprocessing.clean_text import clean_text
+from keywords.extract_keywords import extract_keywords
 
 # future imports
-# from keywords.extract_keywords import extract_keywords
 # from summarization.summarize import summarize_text
 
 # Load image
@@ -89,7 +89,15 @@ if st.button("Analyze", use_container_width=True):
 
     else:
 
+        # Clean text
         cleaned_text = clean_text(text)
+
+        # Extract keywords
+        keywords = extract_keywords(cleaned_text)
+
+        # -----------------------------
+        # CLEANED TEXT
+        # -----------------------------
 
         st.divider()
 
@@ -97,16 +105,22 @@ if st.button("Analyze", use_container_width=True):
 
         st.write(cleaned_text)
 
+        # -----------------------------
+        # KEYWORDS
+        # -----------------------------
+
         st.divider()
 
-        # Placeholder for keywords
         st.subheader("Keywords")
 
-        st.write("Waiting for keyword module...")
+        st.write(keywords)
+
+        # -----------------------------
+        # SUMMARY PLACEHOLDER
+        # -----------------------------
 
         st.divider()
 
-        # Placeholder for summary
         st.subheader("Summary")
 
         st.write("Waiting for summarization module...")
