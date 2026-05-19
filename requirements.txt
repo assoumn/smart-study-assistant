@@ -3,3 +3,4 @@ spacy
 scikit-learn
 streamlit
 pandas
+PyPDF2
