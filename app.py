@@ -175,5 +175,5 @@ if st.button("Analyze", use_container_width=True):
         st.divider()
 
         st.subheader("Summary")
-
-        st.write("Waiting for summarization module...")
+        summary = summarize_text(text)
+        st.write(summary)
