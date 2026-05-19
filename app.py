@@ -4,9 +4,7 @@ import PyPDF2
 
 from preprocessing.clean_text import clean_text
 from keywords.extract_keywords import extract_keywords
-
-# future imports
-# from summarization.summarize import summarize_text
+from summarization.summarize import summarize_text
 
 # -----------------------------
 # LOAD IMAGE
@@ -64,7 +62,7 @@ st.markdown(
 # IMAGE
 # -----------------------------
 
-col1, col2, col3 = st.columns([1,2,1])
+col1, col2, col3 = st.columns([1, 2, 1])
 
 with col2:
     st.image(image, width=350)
@@ -136,44 +134,53 @@ if st.button("Analyze", use_container_width=True):
 
     else:
 
-        # -----------------------------
-        # PREPROCESSING
-        # -----------------------------
+        with st.spinner("Analyzing lecture..."):
 
-        cleaned_text = clean_text(final_text)
+            # -----------------------------
+            # PREPROCESSING
+            # -----------------------------
 
-        # -----------------------------
-        # KEYWORD EXTRACTION
-        # -----------------------------
+            cleaned_text = clean_text(final_text)
 
-        keywords = extract_keywords(cleaned_text)
+            # -----------------------------
+            # KEYWORD EXTRACTION
+            # -----------------------------
 
-        # -----------------------------
-        # CLEANED TEXT
-        # -----------------------------
+            keywords = extract_keywords(cleaned_text)
 
-        st.divider()
+            # -----------------------------
+            # SUMMARIZATION
+            # -----------------------------
 
-        st.subheader("Cleaned Text")
+            summary = summarize_text(final_text)
 
-        st.write(cleaned_text)
+            # -----------------------------
+            # CLEANED TEXT
+            # -----------------------------
 
-        # -----------------------------
-        # KEYWORDS
-        # -----------------------------
+            st.divider()
 
-        st.divider()
+            st.subheader("Cleaned Text")
 
-        st.subheader("Keywords")
+            st.write(cleaned_text)
 
-        st.write(keywords)
+            # -----------------------------
+            # KEYWORDS
+            # -----------------------------
 
-        # -----------------------------
-        # SUMMARY PLACEHOLDER
-        # -----------------------------
+            st.divider()
 
-        st.divider()
+            st.subheader("Keywords")
 
-        st.subheader("Summary")
-        summary = summarize_text(text)
-        st.write(summary)
+            for keyword in keywords:
+                st.markdown(f"- {keyword}")
+
+            # -----------------------------
+            # SUMMARY
+            # -----------------------------
+
+            st.divider()
+
+            st.subheader("Summary")
+
+            st.write(summary)
