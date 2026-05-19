@@ -2,14 +2,44 @@ import streamlit as st
 
 from preprocessing.clean_text import clean_text
 
+# future imports
+# from keywords.extract_keywords import extract_keywords
+# from summarization.summarize import summarize_text
+
+st.set_page_config(
+    page_title="Smart Study Assistant",
+    layout="centered"
+)
+
 st.title("Smart Study Assistant")
 
-text = st.text_area("Enter your lecture text")
+st.write("Analyze lecture text using NLP techniques.")
+
+text = st.text_area(
+    "Enter your lecture text",
+    height=250
+)
 
 if st.button("Analyze"):
+    
 
-    cleaned = clean_text(text)
+    if text.strip() == "":
+        st.warning("Please enter some text.")
+    
+    else:
 
-    st.subheader("Cleaned Text")
+        cleaned_text = clean_text(text)
 
-    st.write(cleaned)
+        st.subheader("Cleaned Text")
+
+        st.write(cleaned_text)
+        
+        # Placeholder for keywords
+        st.subheader("Keywords")
+
+        st.write("Waiting for keyword module...")
+
+        # Placeholder for summary
+        st.subheader("Summary")
+
+        st.write("Waiting for summarization module...")
