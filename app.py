@@ -1,14 +1,22 @@
 import streamlit as st
 from PIL import Image
+import PyPDF2
 
 from preprocessing.clean_text import clean_text
+from keywords.extract_keywords import extract_keywords
 
 # future imports
-# from keywords.extract_keywords import extract_keywords
-from summarization.summarize import summarize_text
+# from summarization.summarize import summarize_text
 
-# Load image
+# -----------------------------
+# LOAD IMAGE
+# -----------------------------
+
 image = Image.open("assets/roboto.png")
+
+# -----------------------------
+# PAGE CONFIG
+# -----------------------------
 
 st.set_page_config(
     page_title="Smart Study Assistant",
@@ -70,13 +78,39 @@ st.title("Smart Study Assistant")
 st.caption("Analyze lecture text using NLP techniques.")
 
 # -----------------------------
-# INPUT
+# PDF UPLOAD
+# -----------------------------
+
+uploaded_file = st.file_uploader(
+    "Upload Lecture PDF",
+    type=["pdf"]
+)
+
+# -----------------------------
+# TEXT INPUT
 # -----------------------------
 
 text = st.text_area(
-    "Enter your lecture text",
+    "Or enter your lecture text manually",
     height=250
 )
+
+# -----------------------------
+# EXTRACT PDF TEXT
+# -----------------------------
+
+pdf_text = ""
+
+if uploaded_file is not None:
+
+    pdf_reader = PyPDF2.PdfReader(uploaded_file)
+
+    for page in pdf_reader.pages:
+
+        extracted = page.extract_text()
+
+        if extracted:
+            pdf_text += extracted
 
 # -----------------------------
 # BUTTON
@@ -84,12 +118,39 @@ text = st.text_area(
 
 if st.button("Analyze", use_container_width=True):
 
-    if text.strip() == "":
-        st.warning("Please enter some text.")
+    # -----------------------------
+    # CHOOSE INPUT SOURCE
+    # -----------------------------
+
+    final_text = text
+
+    if pdf_text:
+        final_text = pdf_text
+
+    # -----------------------------
+    # EMPTY INPUT CHECK
+    # -----------------------------
+
+    if final_text.strip() == "":
+        st.warning("Please enter text or upload a PDF.")
 
     else:
 
-        cleaned_text = clean_text(text)
+        # -----------------------------
+        # PREPROCESSING
+        # -----------------------------
+
+        cleaned_text = clean_text(final_text)
+
+        # -----------------------------
+        # KEYWORD EXTRACTION
+        # -----------------------------
+
+        keywords = extract_keywords(cleaned_text)
+
+        # -----------------------------
+        # CLEANED TEXT
+        # -----------------------------
 
         st.divider()
 
@@ -97,16 +158,22 @@ if st.button("Analyze", use_container_width=True):
 
         st.write(cleaned_text)
 
+        # -----------------------------
+        # KEYWORDS
+        # -----------------------------
+
         st.divider()
 
-        # Placeholder for keywords
         st.subheader("Keywords")
 
-        st.write("Waiting for keyword module...")
+        st.write(keywords)
+
+        # -----------------------------
+        # SUMMARY PLACEHOLDER
+        # -----------------------------
 
         st.divider()
 
-        # Placeholder for summary
         st.subheader("Summary")
         summary = summarize_text(text)
         st.write(summary)
