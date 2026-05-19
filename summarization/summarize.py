@@ -1,39 +1,108 @@
-import nltk
 from nltk.tokenize import sent_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
+import nltk
 import numpy as np
 
+# Download tokenizer
 nltk.download('punkt')
+
 
 def summarize_text(text, num_sentences=3):
 
-    # 1. Split into sentences
+    # -----------------------------
+    # SENTENCE TOKENIZATION
+    # -----------------------------
+    
     sentences = sent_tokenize(text)
 
+    # Handle very short text
     if len(sentences) <= num_sentences:
-        return text
 
-    # 2. TF-IDF vectorization on sentences
-    vectorizer = TfidfVectorizer(stop_words='english')
+        return {
+
+            "summary": text,
+
+            "ranked_sentences": [
+                (1.0, sentence)
+                for sentence in sentences
+            ],
+
+            "study_notes": sentences
+        }
+
+    # -----------------------------
+    # TF-IDF VECTORIZATION
+    # -----------------------------
+
+    vectorizer = TfidfVectorizer(
+        stop_words='english'
+    )
+
     tfidf_matrix = vectorizer.fit_transform(sentences)
 
-    # 3. Score each sentence (sum of TF-IDF weights)
-    sentence_scores = np.array(tfidf_matrix.sum(axis=1)).flatten()
+    # -----------------------------
+    # SENTENCE SCORING
+    # -----------------------------
 
-    # 4. Rank sentences
-    ranked_sentences = [
-        sentence for _, sentence in sorted(
-            zip(sentence_scores, sentences),
-            reverse=True
-        )
+    sentence_scores = np.array(
+        tfidf_matrix.sum(axis=1)
+    ).flatten()
+
+    # -----------------------------
+    # SENTENCE RANKING
+    # -----------------------------
+
+    ranked_data = sorted(
+        zip(sentence_scores, sentences),
+        reverse=True
+    )
+
+    # -----------------------------
+    # EXTRACTIVE SUMMARY
+    # -----------------------------
+
+    selected_sentences = [
+
+        sentence
+
+        for score, sentence
+        in ranked_data[:num_sentences]
     ]
 
-    # 5. Pick top sentences
-    selected = ranked_sentences[:num_sentences]
-
-    # 6. Restore original order (IMPORTANT for readability)
+    # Preserve original order
     final_summary = [
-        s for s in sentences if s in selected
+
+        sentence
+
+        for sentence in sentences
+        if sentence in selected_sentences
     ]
 
-    return " ".join(final_summary)
+    # -----------------------------
+    # STUDY NOTES GENERATION
+    # -----------------------------
+
+    study_notes = []
+
+    for score, sentence in ranked_data:
+
+        # Keep informative sentences
+        if len(sentence.split()) > 8:
+
+            study_notes.append(sentence)
+
+    # -----------------------------
+    # RETURN RESULTS
+    # -----------------------------
+
+    return {
+
+        # Final summary
+        "summary": " ".join(final_summary),
+
+        # Ranked sentences + scores
+        "ranked_sentences": ranked_data,
+
+        # Generated study notes
+        "study_notes": study_notes
+    }
