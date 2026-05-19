@@ -102,6 +102,17 @@ text = st.text_area(
 )
 
 # -----------------------------
+# SUMMARY LENGTH
+# -----------------------------
+
+summary_length = st.slider(
+    "Select Summary Length",
+    min_value=1,
+    max_value=10,
+    value=3
+)
+
+# -----------------------------
 # EXTRACT PDF TEXT
 # -----------------------------
 
@@ -146,14 +157,15 @@ if st.button("Analyze", use_container_width=True):
                 st.session_state.cleaned_text
             )
 
-            # SUMMARY
+            # ADVANCED SUMMARY
             st.session_state.summary = summarize_text(
-                final_text
+                final_text,
+                summary_length
             )
 
             # QUIZ
             st.session_state.quiz_questions = generate_quiz(
-                st.session_state.summary
+                st.session_state.summary["summary"]
             )
 
             st.session_state.analysis_done = True
@@ -177,16 +189,68 @@ if st.session_state.analysis_done:
     st.subheader("Keywords")
 
     for keyword in st.session_state.keywords:
+
         st.markdown(f"- {keyword}")
 
-    # SUMMARY
+    # -----------------------------
+    # EXTRACTIVE SUMMARY
+    # -----------------------------
+
     st.divider()
 
-    st.subheader("Summary")
+    st.subheader("Extractive Summary")
 
-    st.write(st.session_state.summary)
+    st.success(
+        st.session_state.summary["summary"]
+    )
 
+    # -----------------------------
+    # SENTENCE ANALYSIS
+    # -----------------------------
+
+    st.divider()
+
+    st.subheader("Sentence Importance Analysis")
+
+    ranked_sentences = st.session_state.summary[
+        "ranked_sentences"
+    ]
+
+    for index, (score, sentence) in enumerate(
+        ranked_sentences,
+        start=1
+    ):
+
+        st.markdown(
+            f"### Sentence Rank #{index}"
+        )
+
+        st.write(sentence)
+
+        st.caption(
+            f"Importance Score: {score:.2f}"
+        )
+
+        st.divider()
+
+    # -----------------------------
+    # STUDY NOTES
+    # -----------------------------
+
+    st.subheader("Generated Study Notes")
+
+    study_notes = st.session_state.summary[
+        "study_notes"
+    ]
+
+    for note in study_notes:
+
+        st.markdown(f"• {note}")
+
+    # -----------------------------
     # QUIZ
+    # -----------------------------
+
     st.divider()
 
     st.subheader("Quiz")
@@ -195,7 +259,9 @@ if st.session_state.analysis_done:
         st.session_state.quiz_questions
     ):
 
-        st.markdown(f"### Question {index + 1}")
+        st.markdown(
+            f"### Question {index + 1}"
+        )
 
         st.write(item["question"])
 
@@ -227,11 +293,15 @@ if st.session_state.analysis_done:
 
             correct_answer = item["answer"]
 
-            st.markdown(f"### Question {index + 1}")
+            st.markdown(
+                f"### Question {index + 1}"
+            )
 
             st.write(item["question"])
 
-            st.write(f"Your Answer: {user_answer}")
+            st.write(
+                f"Your Answer: {user_answer}"
+            )
 
             st.write(
                 f"Correct Answer: {correct_answer}"
